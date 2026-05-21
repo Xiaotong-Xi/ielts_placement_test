@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDUFE IELTS Placement Test Portal</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #ffffff;
+            --text-secondary: #b3b3b3;
+            --accent-color: #3a3a3a;
+            --selected-color: #0076ff;
+            --hover-color: #0056cc;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'PingFang SC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .portal-container {
+            width: 90%;
+            max-width: 700px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 50px 40px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .logo-placeholder {
+            width: 180px;
+            height: auto;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        .options-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .level-card {
+            flex: 1;
+            min-width: 240px;
+            background-color: #262626;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 30px 20px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .level-card:hover {
+            border-color: var(--selected-color);
+            transform: translateY(-4px);
+            background-color: #2d2d2d;
+            box-shadow: 0 6px 16px rgba(0, 118, 255, 0.15);
+        }
+
+        .level-badge {
+            background-color: #333;
+            color: #ffb300;
+            font-size: 0.75rem;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 15px;
+        }
+
+        .level-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .level-card.disabled:hover {
+            border-color: #444;
+            transform: none;
+            background-color: #262626;
+            box-shadow: none;
+        }
+
+        .level-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .level-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+            margin-bottom: 20px;
+        }
+
+        .btn-start {
+            background-color: var(--accent-color);
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border-radius: 4px;
+            transition: background 0.2s;
+            text-transform: uppercase;
+        }
+
+        .level-card:hover .btn-start {
+            background-color: var(--selected-color);
+        }
+        
+        .level-card.disabled:hover .btn-start {
+            background-color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+
+<div class="portal-container">
+    <img class="logo-placeholder" src="resources/logo.png" alt="SDUFE Logo" onerror="this.style.display='none'">
+    <h1>雅思水平分班测试系统</h1>
+    <p class="subtitle">
+        欢迎来到山东财经大学外国语学院雅思培训中心。<br>
+        请根据教师指导或您的目标分段选择适合您的测试层级。
+    </p>
+
+    <div class="options-container">
+        <a href="beginner.html" class="level-card">
+            <div class="level-badge" style="color: #4cd964;">Tier 1</div>
+            <div class="level-title">初级测试 (Beginner)</div>
+            <div class="level-desc">适合目标分数 4.5 - 5.5 分，或基础相对薄弱需要稳固题型基础的同学。</div>
+            <button class="btn-start">进入测试</button>
+        </a>
+
+        <a href="intermediate.html" class="level-card">
+            <div class="level-badge">Tier 2</div>
+            <div class="level-title">中级测试 (Intermediate)</div>
+            <div class="level-desc">适合目标分数 6.0 - 6.5 分，具备一定词汇量，希望测试四项综合能力的同学。</div>
+            <button class="btn-start">进入测试</button>
+        </a>
+    </div>
+</div>
+
+</body>
+</html>
