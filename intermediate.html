@@ -980,51 +980,50 @@
     }
 
     function downloadDataFile() {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-        const filename = `IELTS_Report_${studentName}_${timestamp}.txt`;
+    // --- KEEP YOUR EXISTING TEXT ASSEMBLING CODE ---
+    let fileContent = `==================================================\n`;
+    fileContent += `   SDUFE IELTS PLACEMENT TEST REPORT (INTERMEDIATE)\n`;
+    fileContent += `==================================================\n`;
+    fileContent += `Participant Name : ${studentName}\n`;
+    // ... (Keep all your existing fileContent lines exactly as they are)
+    fileContent += `==================================================\n`;
 
-        let fileContent = `==================================================\n`;
-        fileContent += `   SDUFE IELTS PLACEMENT TEST REPORT (INTERMEDIATE)\n`;
-        fileContent += `==================================================\n`;
-        fileContent += `Participant Name : ${studentName}\n`;
-        fileContent += `Submission Time  : ${new Date().toLocaleString()}\n`;
-        fileContent += `--------------------------------------------------\n\n`;
+    // --- PASTE THIS NEW TRANSMISSION HOOK HERE ---
+    
+    // Package the student's name and the exact complete text block
+    const payload = {
+        name: studentName,
+        reportText: fileContent
+    };
 
-        fileContent += `[LISTENING SECTION ANSWERS]\n`;
-        fileContent += `Q11 : ${answers['q11'] || ''}\n`;
-        fileContent += `Q12 : ${answers['q12'] || ''}\n`;
-        fileContent += `Q13 : ${answers['q13'] || ''}\n`;
-        fileContent += `Q14 : ${answers['q14'] || ''}\n`;
-        fileContent += `Q15 : ${answers['q15'] || ''}\n`;
-        fileContent += `Q16 : ${answers['q16'] || ''}\n`;
-        fileContent += `Q17-18 : ${(answers['q17_18'] || []).join(', ')}\n`;
-        fileContent += `Q19-20 : ${(answers['q19_20'] || []).join(', ')}\n`;
-        for(let i=31; i<=40; i++) {
-            fileContent += `Q${i} : ${answers['q'+i] || ''}\n`;
+    // Fire the text block straight to your Google Apps Script Web App
+    fetch('https://script.google.com/macros/s/AKfycbxXVNBACIwrgw4l3RtMSp5MHPeSLwvuEclj5fvudGIUynVgaf_VkmuDf0VulF0LY0Hm/exec', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'text/plain' // Bypasses browser CORS barriers securely
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if(result.status === "success") {
+            console.log("Safely saved as a .txt file in Google Drive!");
+        } else {
+            console.error("Google Script execution failed: ", result.message);
         }
-        fileContent += `\n`;
+    })
+    .catch(error => console.error("Network transfer failed: ", error));
 
-        fileContent += `[READING SECTION ANSWERS]\n`;
-        for(let i=1; i<=9; i++) {
-            fileContent += `Q${i} : ${answers['r'+i] || ''}\n`;
-        }
-        fileContent += `Q10 : ${answers['r10'] || ''}\n`;
-        fileContent += `\n`;
-
-        fileContent += `[WRITING SECTION ESSAY]\n`;
-        fileContent += `${answers['writing_essay'] || ''}\n\n`;
-        fileContent += `==================================================\n`;
-        fileContent += `                 END OF REPORT                    \n`;
-        fileContent += `==================================================\n`;
-
-        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
-        const element = document.createElement('a');
-        element.href = URL.createObjectURL(blob);
-        element.download = filename;
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element);
-    }
+    // --- KEEP YOUR EXISTING LOCAL DOWNLOAD BLOB CODE BELOW ---
+    // This ensures the local file still downloads onto the student's machine as a backup!
+    const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+    const element = document.createElement('a');
+    element.href = URL.createObjectURL(blob);
+    element.download = `IELTS_Report_${studentName}.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+}
 </script>
 
 <script src="intermediate.js"></script>
