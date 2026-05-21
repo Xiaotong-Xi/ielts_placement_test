@@ -170,7 +170,6 @@
             margin-bottom: 30px;
         }
 
-        /* 听力 Part 4 笔记填空排版 */
         .notes-completion-box {
             background-color: #1a1a1a;
             padding: 25px;
@@ -205,7 +204,6 @@
             font-size: 1.1rem;
         }
 
-        /* 分屏布局 */
         .split-layout {
             display: flex;
             gap: 30px;
@@ -282,14 +280,12 @@
             border-color: var(--selected-color);
         }
 
-        /* 未填满或未答题时的输入框高亮警示样式 */
         .fill-blank-input.highlight-error,
         .writing-textarea.highlight-error {
             border-color: var(--error-color) !important;
             background-color: #2f1919 !important;
         }
 
-        /* 未答选择题高亮边框 */
         .question-block.highlight-error {
             border: 2px solid var(--error-color) !important;
             background: #281c1c !important;
@@ -601,7 +597,6 @@
 
     <div id="screen-reading" class="screen test-flow">
         <div class="split-layout">
-            
             <div class="left-panel">
                 <h2>Persistent Bullying</h2>
                 <p><span class="paragraph-letter">A</span> Persistent bullying is one of the worst experiences a child can face. How can it be prevented? Peter Smith, Professor of Psychology at the University of Sheffield, directed the Sheffield Anti-Bullying Intervention Project, funded by the Development for Education. Here he reports on his findings.</p>
@@ -614,7 +609,6 @@
             </div>
 
             <div class="right-panel" id="wrapper-reading">
-                
                 <div class="section-header">Questions 1 - 4 (TRUE / FALSE / NOT GIVEN)</div>
                 <div class="question-subtitle">Do the following statements agree with the information given in the Reading Passage?</div>
 
@@ -687,7 +681,6 @@
                         <li class="option-item" data-value="D">D. Bullying: from crisis management to prevention</li>
                     </ul>
                 </div>
-
             </div>
         </div>
 
@@ -712,287 +705,325 @@
             </div>
 
             <div class="right-panel">
-                <textarea id="writing-essay" class="writing-textarea" placeholder="Type your response here..." oninput="updateWordCount()"></textarea>
-                <div class="word-count-badge">Word Count: <span id="word-count-val">0</span> / 150 words</div>
+                <textarea id="writing-essay" class="writing-textarea" placeholder="在此处开始输入您的作文 (Type your response here...)" oninput="updateWordCount()"></textarea>
+                <div class="word-count-badge">Word Count: <span id="word-count-val">0</span> words</div>
             </div>
         </div>
 
         <div class="action-container">
-            <button class="btn-next" onclick="submitFinalExam()">Submit Test</button>
+            <button class="btn-next" onclick="submitTest()">Submit Test</button>
         </div>
     </div>
 
-    <div id="screen-end" class="screen">
-        <h1 class="end-title">定级测试结束！</h1>
-        <p style="color: var(--text-secondary); margin-top: 10px;">您的全套数据文件（听力+阅读+写作）已生成并成功下载。感谢参与！</p>
+    <div id="screen-result" class="screen">
+        <div class="end-title">测试提交成功！</div>
+        <p class="instruction-text" style="margin-top: 20px;">
+            谢谢，您的答题数据已成功保存。系统已自动为您生成本地答题报告文本包。
+            请点击下方按钮下载您的答题文本文件，并将其发送给负责登记的老师。
+        </p>
+        <button class="btn-next" style="background-color: #0076ff;" onclick="downloadDataFile()">Download Report</button>
     </div>
 
 </div>
 
 <script>
-    let participantName = "";
-    
-    // 答题缓存全局变量
-    const responses = {
-        q11: null, q12: null, q13: null, q14: null, q15: null, q16: null,
-        q17_18: [], q19_20: [],
-        q31: "", q32: "", q33: "", q34: "", q35: "", q36: "", q37: "", q38: "", q39: "", q40: "",
-        r1: null, r2: null, r3: null, r4: null,
-        r5: "", r6: "", r7: "", r8: "", r9: "",
-        r10: null,
-        w_essay: ""
+    let studentName = "";
+    let answers = {};
+    let currentActiveScreen = "screen-welcome";
+
+    // 用于保存所有的DOM音频引用
+    const audios = {
+        volume: document.getElementById('audio-volume'),
+        part1: document.getElementById('audio-part1'),
+        part2: document.getElementById('audio-part2'),
+        part4: document.getElementById('audio-part4')
     };
 
-    function navigateTo(screenId) {
-        document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
-        // 切换页面时重置滚动条到顶部
-        const wrapper = document.querySelector(`#${screenId} .questions-wrapper`);
-        if (wrapper) wrapper.scrollTop = 0;
-    }
+        currentActiveScreen = screenId;
 
-    // 辅助工具：移除当前界面所有的报错红框高亮
-    function clearErrors() {
-        document.querySelectorAll('.highlight-error').forEach(el => el.classList.remove('highlight-error'));
-    }
-
-    function validateAndNavigate() {
-        const nameInput = document.getElementById('participant-name');
-        const errorMsg = document.getElementById('name-error');
-        participantName = nameInput.value.trim();
-
-        if (participantName === "") {
-            errorMsg.style.display = "block";
-            nameInput.style.borderColor = "var(--error-color)";
+        const mainContainer = document.getElementById('main-container');
+        if (screenId === 'screen-reading' || screenId === 'screen-writing') {
+            mainContainer.classList.add('wide-mode');
         } else {
-            errorMsg.style.display = "none";
-            nameInput.style.borderColor = "#444";
-            navigateTo('screen-volume');
-            document.getElementById('audio-volume').play().catch(err => console.log(err));
+            mainContainer.classList.remove('wide-mode');
         }
     }
 
-    function startPart1() {
-        document.getElementById('audio-volume').pause();
-        navigateTo('screen-part1');
-        document.getElementById('audio-part1').play().catch(err => console.log(err));
-    }
-
-    // 【检测逻辑 1】验证 11-16题（单选）是否全部作答
-    function goToPart2() {
-        clearErrors();
-        const unanswred = [];
-        const questions = ['q11','q12','q13','q14','q15','q16'];
-        
-        questions.forEach(q => {
-            if (!responses[q]) {
-                unanswred.push(q);
-                document.querySelector(`[data-question="${q}"]`).classList.add('highlight-error');
-            }
-        });
-
-        if (unanswred.length > 0) {
-            alert("请先完成当前页面所有的单选题再继续。");
-            return;
-        }
-
-        document.getElementById('audio-part1').pause();
-        navigateTo('screen-part2');
-        document.getElementById('audio-part2').play().catch(err => console.log(err));
-    }
-
-    // 【检测逻辑 2】验证 17-20题（多选）是否每题各选满了2个选项
-    function goToPart4() {
-        clearErrors();
-        let hasError = false;
-
-        if (responses.q17_18.length !== 2) {
-            document.querySelector('[data-question="q17_18"]').classList.add('highlight-error');
-            hasError = true;
-        }
-        if (responses.q19_20.length !== 2) {
-            document.querySelector('[data-question="q19_20"]').classList.add('highlight-error');
-            hasError = true;
-        }
-
-        if (hasError) {
-            alert("多选题属于限选两个选项的题型，请为每道多选题恰好选择2个字母。");
-            return;
-        }
-
-        document.getElementById('audio-part2').pause();
-        navigateTo('screen-part4');
-        document.getElementById('audio-part4').play().catch(err => console.log(err));
-    }
-
-    // 【检测逻辑 3】验证听力 Part 4（31-40题填空）是否全部打字作答
-    function goToReading() {
-        clearErrors();
-        let hasError = false;
-
-        for (let i = 31; i <= 40; i++) {
-            const val = document.getElementById(`q${i}`).value.trim();
-            responses['q'+i] = val;
-            if (val === "") {
-                document.getElementById(`q${i}`).classList.add('highlight-error');
-                hasError = true;
-            }
-        }
-
-        if (hasError) {
-            alert("请补全听力第四部分 (Questions 31-40) 的所有填空单词。");
-            return;
-        }
-
-        document.getElementById('audio-part4').pause();
-        document.getElementById('main-container').classList.add('wide-mode'); 
-        navigateTo('screen-reading');
-    }
-
-    // 【检测逻辑 4】验证阅读所有题型（判断、单选、填空）
-    function goToWriting() {
-        clearErrors();
-        let hasError = false;
-
-        // 1. 验证 r1, r2, r3, r4, r10 (选择类)
-        ['r1', 'r2', 'r3', 'r4', 'r10'].forEach(q => {
-            if (!responses[q]) {
-                document.querySelector(`[data-question="${q}"]`).classList.add('highlight-error');
-                hasError = true;
-            }
-        });
-
-        // 2. 验证 r5-r9 (摘要填空)
-        for (let i = 5; i <= 9; i++) {
-            const val = document.getElementById(`r${i}`).value.trim();
-            responses['r'+i] = val;
-            if (val === "") {
-                document.getElementById(`r${i}`).classList.add('highlight-error');
-                hasError = true;
-            }
-        }
-
-        if (hasError) {
-            // 如果填空题报错，也将父级大文本框块框起提示
-            if([...Array(5).keys()].some(x => document.getElementById(`r${x+5}`).value.trim() === "")) {
-                document.getElementById('reading-blanks-block').classList.add('highlight-error');
-            }
-            alert("请完成阅读部分的所有题目再进入写作。");
-            return;
-        }
-
-        navigateTo('screen-writing');
-    }
-
-    function updateWordCount() {
-        const text = document.getElementById('writing-essay').value.trim();
-        const words = text === "" ? 0 : text.split(/\s+/).length;
-        document.getElementById('word-count-val').innerText = words;
-        responses.w_essay = text;
-        
-        // 动态解除红框高亮
-        if(words >= 150) {
-            document.getElementById('writing-essay').classList.remove('highlight-error');
-        }
-    }
-
-    // 【检测逻辑 5】最终交卷时严格验证写作字数必须达到 150 词
-    function submitFinalExam() {
-        clearErrors();
-        const text = document.getElementById('writing-essay').value.trim();
-        const wordCount = text === "" ? 0 : text.split(/\s+/).length;
-
-        if (wordCount < 150) {
-            document.getElementById('writing-essay').classList.add('highlight-error');
-            alert(`您的写作字数当前为 ${wordCount} 字，未达到 150 字的最低考试标准，无法提交！请继续作答。`);
-            return;
-        }
-
-        if (!confirm("您已成功完成全套定级测试，确定要正式提交并导出数据吗？")) return;
-
-        saveDataToCSV();
-        document.getElementById('main-container').classList.remove('wide-mode'); 
-        navigateTo('screen-end');
-    }
-
-    // 绑定点选变色逻辑
+    // 绑定多选题与单选题的选项点击事件
     document.querySelectorAll('.option-item').forEach(item => {
         item.addEventListener('click', function() {
-            const parentBlock = this.closest('.question-block');
-            const questionId = parentBlock.getAttribute('data-question');
-            const questionType = parentBlock.getAttribute('data-type');
-            const value = this.getAttribute('data-value');
+            const block = this.closest('.question-block');
+            const qId = block.getAttribute('data-question');
+            const qType = block.getAttribute('data-type');
+            const itemValue = this.getAttribute('data-value');
 
-            // 只要点击了，就移除当前题目的未答红框高亮
-            parentBlock.classList.remove('highlight-error');
+            // 移除红色的未答警告框
+            block.classList.remove('highlight-error');
 
-            if (questionType === "single") {
-                parentBlock.querySelectorAll('.option-item').forEach(el => el.classList.remove('selected'));
+            if (qType === 'single') {
+                block.querySelectorAll('.option-item').forEach(opt => opt.classList.remove('selected'));
                 this.classList.add('selected');
-                responses[questionId] = value;
-            } else if (questionType === "multi") {
-                const index = responses[questionId].indexOf(value);
-                if (index > -1) {
+                answers[qId] = itemValue;
+            } else if (qType === 'multi') {
+                const limit = parseInt(block.getAttribute('data-limit') || '2');
+                if (!answers[qId]) answers[qId] = [];
+
+                if (this.classList.contains('selected')) {
                     this.classList.remove('selected');
-                    responses[questionId].splice(index, 1);
+                    answers[qId] = answers[qId].filter(v => v !== itemValue);
                 } else {
-                    if (responses[questionId].length >= 2) {
-                        alert("该题限选两个选项，若需修改请先取消勾选已有项。");
+                    if (answers[qId].length >= limit) {
+                        alert(`该题最多只能选择 ${limit} 个选项！`);
                         return;
                     }
                     this.classList.add('selected');
-                    responses[questionId].push(value);
+                    answers[qId].push(itemValue);
                 }
             }
         });
     });
 
-    // 绑定所有的填空输入框，只要用户开始打字，就动态取消红框高亮
+    // 绑定填空题输入框清除报错边框
     document.querySelectorAll('.fill-blank-input').forEach(input => {
         input.addEventListener('input', function() {
-            if(this.value.trim() !== "") {
+            if (this.value.trim() !== "") {
                 this.classList.remove('highlight-error');
-                const parentBlock = this.closest('.question-block');
-                if (parentBlock) parentBlock.classList.remove('highlight-error');
             }
         });
     });
 
-    function saveDataToCSV() {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
-        csvContent += "Participant Name,Question ID,Selected/Typed Answer\n";
-        
-        ['q11','q12','q13','q14','q15','q16'].forEach(q => {
-            csvContent += `"${participantName}","${q}","${responses[q]}"\n`;
+    // 绑定写作输入框清除报错边框
+    const writingArea = document.getElementById('writing-essay');
+    if (writingArea) {
+        writingArea.addEventListener('input', function() {
+            if (this.value.trim() !== "") {
+                this.classList.remove('highlight-error');
+            }
+            updateWordCount();
         });
-        csvContent += `"${participantName}","q17_18","${responses.q17_18.sort().join(' | ')}"\n`;
-        csvContent += `"${participantName}","q19_20","${responses.q19_20.sort().join(' | ')}"\n`;
+    }
 
-        for(let i=31; i<=40; i++) {
-            csvContent += `"${participantName}","q${i}","${responses['q'+i]}"\n`;
+    function validateAndNavigate() {
+        const nameInput = document.getElementById('participant-name');
+        const errorMsg = document.getElementById('name-error');
+        studentName = nameInput.value.trim();
+
+        if (studentName === "") {
+            errorMsg.style.display = 'block';
+            nameInput.style.focus;
+            return;
+        }
+        errorMsg.style.display = 'none';
+        
+        showScreen('screen-volume');
+        
+        // 关键修复：借由用户的点击事件（Next）直接安全触发媒体播放
+        if (audios.volume) {
+            audios.volume.play().catch(err => {
+                console.log("Audio play deferred or blocked:", err);
+            });
+        }
+    }
+
+    function startPart1() {
+        if (audios.volume) {
+            audios.volume.pause();
+            audios.volume.currentTime = 0;
+        }
+        showScreen('screen-part1');
+        if (audios.part1) audios.part1.play();
+    }
+
+    function goToPart2() {
+        // 检查听力第一部分是否有漏答
+        let part1Questions = ['q11', 'q12', 'q13', 'q14', 'q15', 'q16'];
+        let missing = [];
+        
+        part1Questions.forEach(q => {
+            if (!answers[q]) {
+                missing.push(q);
+                document.querySelector(`[data-question="${q}"]`).classList.add('highlight-error');
+            }
+        });
+
+        if (missing.length > 0) {
+            document.getElementById('wrapper-part1').scrollTop = 0;
+            alert("请回答完当前屏幕上的所有问题，然后再进入下一页！");
+            return;
         }
 
-        ['r1','r2','r3','r4','r10'].forEach(q => {
-            csvContent += `"${participantName}","${q}","${responses[q]}"\n`;
-        });
-        ['r5','r6','r7','r8','r9'].forEach(q => {
-            csvContent += `"${participantName}","${q}","${responses[q]}"\n`;
+        if (audios.part1) {
+            audios.part1.pause();
+            audios.part1.currentTime = 0;
+        }
+        showScreen('screen-part2');
+        if (audios.part2) audios.part2.play();
+    }
+
+    function goToPart4() {
+        // 检查听力第二部分多选题是否有漏答
+        let part2Questions = ['q17_18', 'q19_20'];
+        let missing = [];
+
+        part2Questions.forEach(q => {
+            if (!answers[q] || answers[q].length < 2) {
+                missing.push(q);
+                document.querySelector(`[data-question="${q}"]`).classList.add('highlight-error');
+            }
         });
 
-        const sanitizedEssay = responses.w_essay.replace(/"/g, '""');
-        csvContent += `"${participantName}","writing_task1","${sanitizedEssay}"\n`;
+        if (missing.length > 0) {
+            document.getElementById('wrapper-part2').scrollTop = 0;
+            alert("请完成当前屏幕上的所有多项选择题（每题选择2项），然后再进入下一页！");
+            return;
+        }
 
-        const encodedUri = encodeURI(csvContent);
-        const downloadAnchor = document.createElement("a");
-        downloadAnchor.setAttribute("href", encodedUri);
-        
-        const filename = `ielts_final_all_test_${participantName}_${timestamp}.csv`;
-        downloadAnchor.setAttribute("download", filename);
-        
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        document.body.removeChild(downloadAnchor);
+        if (audios.part2) {
+            audios.part2.pause();
+            audios.part2.currentTime = 0;
+        }
+        showScreen('screen-part4');
+        if (audios.part4) audios.part4.play();
+    }
+
+    function goToReading() {
+        // 检查听力第四部分填空题是否有空缺
+        let part4Ids = ['q31', 'q32', 'q33', 'q34', 'q35', 'q36', 'q37', 'q38', 'q39', 'q40'];
+        let unfilledCount = 0;
+
+        part4Ids.forEach(id => {
+            const val = document.getElementById(id).value.trim();
+            if (val === "") {
+                unfilledCount++;
+                document.getElementById(id).classList.add('highlight-error');
+            } else {
+                answers[id] = val;
+            }
+        });
+
+        if (unfilledCount > 0) {
+            alert("请填写完当前表格中的所有单词填空，然后再进入下一页！");
+            return;
+        }
+
+        if (audios.part4) {
+            audios.part4.pause();
+            audios.part4.currentTime = 0;
+        }
+        showScreen('screen-reading');
+    }
+
+    function goToWriting() {
+        // 检查阅读选择题
+        let readChoices = ['r1', 'r2', 'r3', 'r4', 'r10'];
+        let missing = false;
+
+        readChoices.forEach(q => {
+            if (!answers[q]) {
+                missing = true;
+                document.querySelector(`[data-question="${q}"]`).classList.add('highlight-error');
+            }
+        });
+
+        // 检查阅读填空题
+        let readBlanks = ['r5', 'r6', 'r7', 'r8', 'r9'];
+        let blankBlockError = false;
+
+        readBlanks.forEach(id => {
+            const val = document.getElementById(id).value.trim();
+            if (val === "") {
+                missing = true;
+                blankBlockError = true;
+                document.getElementById(id).classList.add('highlight-error');
+            } else {
+                answers[id] = val;
+            }
+        });
+
+        if (blankBlockError) {
+            document.getElementById('reading-blanks-block').classList.add('highlight-error');
+        } else {
+            document.getElementById('reading-blanks-block').classList.remove('highlight-error');
+        }
+
+        if (missing) {
+            document.getElementById('wrapper-reading').scrollTop = 0;
+            alert("请完成当前屏幕上的所有阅读题目（含选择题与填空），然后再进入下一页！");
+            return;
+        }
+
+        showScreen('screen-writing');
+    }
+
+    function updateWordCount() {
+        const text = document.getElementById('writing-essay').value.trim();
+        if (text === "") {
+            document.getElementById('word-count-val').innerText = "0";
+            return;
+        }
+        const words = text.split(/\s+/);
+        document.getElementById('word-count-val').innerText = words.length;
+    }
+
+    function submitTest() {
+        const essayText = document.getElementById('writing-essay').value.trim();
+        if (essayText === "") {
+            document.getElementById('writing-essay').classList.add('highlight-error');
+            alert("请在右侧文本框内撰写您的作文，完成后再点击提交！");
+            return;
+        }
+        answers["writing_essay"] = essayText;
+        showScreen('screen-result');
+    }
+
+    function downloadDataFile() {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const filename = `IELTS_Report_${studentName}_${timestamp}.txt`;
+
+        let fileContent = `==================================================\n`;
+        fileContent += `   SDUFE IELTS PLACEMENT TEST REPORT (INTERMEDIATE)\n`;
+        fileContent += `==================================================\n`;
+        fileContent += `Participant Name : ${studentName}\n`;
+        fileContent += `Submission Time  : ${new Date().toLocaleString()}\n`;
+        fileContent += `--------------------------------------------------\n\n`;
+
+        fileContent += `[LISTENING SECTION ANSWERS]\n`;
+        fileContent += `Q11 : ${answers['q11'] || ''}\n`;
+        fileContent += `Q12 : ${answers['q12'] || ''}\n`;
+        fileContent += `Q13 : ${answers['q13'] || ''}\n`;
+        fileContent += `Q14 : ${answers['q14'] || ''}\n`;
+        fileContent += `Q15 : ${answers['q15'] || ''}\n`;
+        fileContent += `Q16 : ${answers['q16'] || ''}\n`;
+        fileContent += `Q17-18 : ${(answers['q17_18'] || []).join(', ')}\n`;
+        fileContent += `Q19-20 : ${(answers['q19_20'] || []).join(', ')}\n`;
+        for(let i=31; i<=40; i++) {
+            fileContent += `Q${i} : ${answers['q'+i] || ''}\n`;
+        }
+        fileContent += `\n`;
+
+        fileContent += `[READING SECTION ANSWERS]\n`;
+        for(let i=1; i<=9; i++) {
+            fileContent += `Q${i} : ${answers['r'+i] || ''}\n`;
+        }
+        fileContent += `Q10 : ${answers['r10'] || ''}\n`;
+        fileContent += `\n`;
+
+        fileContent += `[WRITING SECTION ESSAY]\n`;
+        fileContent += `${answers['writing_essay'] || ''}\n\n`;
+        fileContent += `==================================================\n`;
+        fileContent += `                 END OF REPORT                    \n`;
+        fileContent += `==================================================\n`;
+
+        const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
+        const element = document.createElement('a');
+        element.href = URL.createObjectURL(blob);
+        element.download = filename;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
     }
 </script>
 
