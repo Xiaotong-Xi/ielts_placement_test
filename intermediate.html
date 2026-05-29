@@ -706,12 +706,12 @@
             <textarea id="writing-essay" class="writing-textarea" placeholder="请在此处纯手打输入您的作文，禁止右键和粘贴..." oninput="updateWordCount()"></textarea>
             <div class="word-count-badge">
                 Word Count: <span id="word-count-val">0</span> words
-                <span id="writing-limit-warning" class="error-text">(字数未达150词，暂无法提交)</span>
+                <span id="writing-limit-warning" class="error-text">(未达到要求的150词，您确定要提交吗？)</span>
             </div>
         </div>
     </div>
     <div class="action-container">
-        <button id="btn-submit-essay" class="btn-next" onclick="submitTest()" disabled>Submit Test</button>
+        <button id="btn-submit-essay" class="btn-next" onclick="submitTest()">Submit Test</button>
     </div>
 </div>
 

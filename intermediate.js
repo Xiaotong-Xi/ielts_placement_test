@@ -116,17 +116,17 @@ function bindListeningAudioTimer(audioElement, partId, nextStepCallback) {
     if (statusSpan) statusSpan.innerText = "音频正在准备播放...";
 
     audioElement.onplay = function() {
-        if (statusSpan) statusSpan.innerText = "音频正在播放中... 请抓紧时间在下方作答";
+        if (statusSpan) statusSpan.innerText = "音频正在播放中... 请在下方作答";
         const timerClock = document.getElementById('timer-clock');
         if (timerClock) timerClock.innerText = "播放中";
     };
 
     audioElement.onended = function() {
-        if (statusSpan) statusSpan.innerText = "音频已播放完毕！当前Part缓冲作答时间剩余：";
+        if (statusSpan) statusSpan.innerText = "音频已播放完毕！当前听力作答时间剩余：";
         if (pulseDot) pulseDot.classList.add('timer-countdown');
 
         // 听力结束后给予 60 秒单独的填表/检查缓冲作答时间
-        startStageTimer(60, "听力Part答题缓冲时间:", () => {
+        startStageTimer(60, "听力答题时间剩余:", () => {
             alert("答题时间已到，系统已自动为您保存当前页答案并切入下一页面。");
             nextStepCallback(true); 
         });
@@ -196,7 +196,7 @@ function goToWriting(isTimeout = false) {
 }
 
 /**
- * 实时监控作文词数及字数锁控制
+ * 🛠️ 核心修改点：实时监控作文词数（不再控制 disabled 锁定，支持强制提交）
  */
 function updateWordCount() {
     const essayTextarea = document.getElementById('writing-essay');
@@ -214,13 +214,21 @@ function updateWordCount() {
     if (wordCountVal) wordCountVal.innerText = count;
     answers['writing_essay'] = text;
 
-    // 雅思小作文核心字数坎：满150个词解锁提交按钮，未满锁定
+    // 确保提交按钮保持可用状态，仅更新界面文字样式提示
+    if (submitBtn) {
+        submitBtn.disabled = false; 
+    }
+
     if (count >= 150) {
-        if (limitWarning) limitWarning.style.display = 'none';
-        if (submitBtn) submitBtn.disabled = false;
+        if (limitWarning) {
+            limitWarning.style.color = "#4cd964"; // 达标变为绿色
+            limitWarning.innerText = "(字数已达标)";
+        }
     } else {
-        if (limitWarning) limitWarning.style.display = 'inline';
-        if (submitBtn) submitBtn.disabled = true;
+        if (limitWarning) {
+            limitWarning.style.color = "#ff3b30"; // 未达标显示红色
+            limitWarning.innerText = `(未达150词，您也可以选择强行提交)`;
+        }
     }
 }
 
@@ -275,7 +283,7 @@ document.querySelectorAll('.option-item').forEach(item => {
 });
 
 /**
- * 🛠️ 核心修改：真正的笔试总提交控制入口
+ * 核心：笔试总提交控制入口
  */
 function submitTest() {
     // 1. 强制提取保存全部数据
