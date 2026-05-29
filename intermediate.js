@@ -227,7 +227,7 @@ function updateWordCount() {
     } else {
         if (limitWarning) {
             limitWarning.style.color = "#ff3b30"; // 未达标显示红色
-            limitWarning.innerText = `(未达150词，您也可以选择强行提交)`;
+            limitWarning.innerText = `(未达150词)`;
         }
     }
 }
