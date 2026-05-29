@@ -14,7 +14,6 @@
             --accent-hover: #777777;
             --selected-color: #0076ff;
             --error-color: #ff3b30;
-            --timer-color: #ff9500;
         }
 
         body {
@@ -24,37 +23,10 @@
             margin: 0;
             padding: 0;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-content: center;
             align-items: center;
             min-height: 100vh;
-        }
-
-        /* 全局顶部计时悬浮条 */
-        .global-timer-bar {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background-color: #2c2c2e;
-            border-bottom: 2px solid var(--timer-color);
-            padding: 10px 20px;
-            box-sizing: border-box;
-            text-align: center;
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #fff;
-            z-index: 9999;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-        }
-
-        .global-timer-bar span {
-            color: var(--timer-color);
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 1.3rem;
-            margin-left: 8px;
         }
 
         .container {
@@ -65,7 +37,7 @@
             padding: 40px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
             box-sizing: border-box;
-            margin: 60px 0 20px 0; /* 预留顶部计时器空间 */
+            margin: 20px 0;
             transition: max-width 0.3s ease;
         }
 
@@ -153,12 +125,6 @@
             background-color: var(--accent-hover);
         }
 
-        .btn-next:disabled {
-            background-color: #3a3a3a !important;
-            color: #777 !important;
-            cursor: not-allowed;
-        }
-
         .test-flow {
             align-items: flex-start;
             text-align: left;
@@ -188,10 +154,6 @@
             background-color: #4cd964;
             border-radius: 50%;
             animation: pulse 1.5s infinite;
-        }
-
-        .pulse-dot.timer-countdown {
-            background-color: var(--timer-color);
         }
 
         @keyframes pulse {
@@ -339,13 +301,6 @@
         .word-count-badge span {
             color: #ffb300;
         }
-        
-        .word-count-badge .error-text {
-            color: var(--error-color);
-            margin-left: 10px;
-            font-weight: normal;
-            display: inline;
-        }
 
         .questions-wrapper::-webkit-scrollbar,
         .left-panel::-webkit-scrollbar,
@@ -449,11 +404,6 @@
 </head>
 <body>
 
-<div id="top-timer-bar" class="global-timer-bar">
-    <span id="timer-status-text">当前阶段剩余时间:</span>
-    <span id="timer-clock">00:00</span>
-</div>
-
 <div id="main-container" class="container">
 
     <audio id="audio-volume" class="hidden-audio" src="resources/volume.wav" loop></audio>
@@ -493,8 +443,8 @@
 
     <div id="screen-part1" class="screen test-flow">
         <div class="audio-status-indicator">
-            <div id="dot-part1" class="pulse-dot"></div>
-            <span id="status-part1">第一部分音频正在播放中... (Questions 11-16)</span>
+            <div class="pulse-dot"></div>
+            <span>第一部分音频正在播放中... (Questions 11-16)</span>
         </div>
 
         <div class="questions-wrapper" id="wrapper-part1">
@@ -560,8 +510,8 @@
 
     <div id="screen-part2" class="screen test-flow">
         <div class="audio-status-indicator">
-            <div id="dot-part2" class="pulse-dot"></div>
-            <span id="status-part2">第二部分音频正在播放中... (Questions 17-20)</span>
+            <div class="pulse-dot"></div>
+            <span>第二部分音频正在播放中... (Questions 17-20)</span>
         </div>
 
         <div class="questions-wrapper" id="wrapper-part2">
@@ -597,8 +547,8 @@
 
     <div id="screen-part4" class="screen test-flow">
         <div class="audio-status-indicator">
-            <div id="dot-part4" class="pulse-dot"></div>
-            <span id="status-part4">第四部分音频正在播放中... (Questions 31-40)</span>
+            <div class="pulse-dot"></div>
+            <span>第四部分音频正在播放中... (Questions 31-40)</span>
         </div>
 
         <div class="section-header">PART 4 Questions 31-40</div>
@@ -756,15 +706,12 @@
 
             <div class="right-panel">
                 <textarea id="writing-essay" class="writing-textarea" placeholder="在此处开始输入您的作文 (Type your response here...)" oninput="updateWordCount()"></textarea>
-                <div class="word-count-badge">
-                    Word Count: <span id="word-count-val">0</span> words
-                    <span id="writing-limit-warning" class="error-text">(字数未达150词，暂无法提交)</span>
-                </div>
+                <div class="word-count-badge">Word Count: <span id="word-count-val">0</span> words</div>
             </div>
         </div>
 
         <div class="action-container">
-            <button id="btn-submit-essay" class="btn-next" onclick="submitTest()" disabled>Submit Test</button>
+            <button class="btn-next" onclick="submitTest()">Submit Test</button>
         </div>
     </div>
 
