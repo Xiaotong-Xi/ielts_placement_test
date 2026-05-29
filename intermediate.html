@@ -1,735 +1,19 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IELTS Placement Test (Intermediate)</title>
-    <style>
-        :root {
-            --bg-color: #121212;
-            --card-bg: #1e1e1e;
-            --text-color: #ffffff;
-            --text-secondary: #b3b3b3;
-            --accent-color: #5a5a5a;
-            --accent-hover: #777777;
-            --selected-color: #0076ff;
-            --error-color: #ff3b30;
-        }
-
-        body {
-            font-family: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            width: 95%;
-            max-width: 800px;
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 40px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-            box-sizing: border-box;
-            margin: 20px 0;
-            transition: max-width 0.3s ease;
-        }
-
-        .container.wide-mode {
-            max-width: 1400px;
-        }
-
-        .screen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            width: 100%;
-        }
-
-        .screen.active {
-            display: flex;
-        }
-
-        .logo-placeholder {
-            width: 200px;
-            height: auto;
-            margin-bottom: 24px;
-        }
-
-        p.instruction-text {
-            font-size: 1.1rem;
-            line-height: 1.8;
-            margin-bottom: 30px;
-            white-space: pre-line;
-        }
-
-        .input-group {
-            width: 100%;
-            max-width: 320px;
-            margin-bottom: 30px;
-            text-align: left;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 12px;
-            background-color: #2a2a2a;
-            border: 2px solid #444;
-            border-radius: 6px;
-            color: #fff;
-            font-size: 1rem;
-            box-sizing: border-box;
-            outline: none;
-        }
-
-        .input-field:focus {
-            border-color: var(--selected-color);
-        }
-
-        .error-message {
-            color: var(--error-color);
-            font-size: 0.85rem;
-            margin-top: 5px;
-            display: none;
-        }
-
-        .btn-next {
-            background-color: var(--accent-color);
-            color: var(--text-color);
-            border: none;
-            padding: 12px 36px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.2s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn-next:hover {
-            background-color: var(--accent-hover);
-        }
-
-        .test-flow {
-            align-items: flex-start;
-            text-align: left;
-        }
-
-        .hidden-audio {
-            display: none !important;
-        }
-
-        .audio-status-indicator {
-            background-color: #2a2a2a;
-            padding: 10px 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        .pulse-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #4cd964;
-            border-radius: 50%;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.9); opacity: 0.6; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(0.9); opacity: 0.6; }
-        }
-
-        .questions-wrapper {
-            width: 100%;
-            max-height: 55vh;
-            overflow-y: auto;
-            padding-right: 10px;
-            margin-bottom: 30px;
-        }
-
-        .notes-completion-box {
-            background-color: #1a1a1a;
-            padding: 25px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            width: 100%;
-            box-sizing: border-box;
-            line-height: 1.8;
-        }
-
-        .notes-completion-box h3 {
-            margin-top: 0;
-            color: #ffb300;
-            border-bottom: 1px solid #444;
-            padding-bottom: 8px;
-        }
-
-        .notes-completion-box ul {
-            list-style-type: square;
-            padding-left: 20px;
-        }
-
-        .notes-completion-box li {
-            margin-bottom: 15px;
-            color: #e0e0e0;
-        }
-
-        .notes-heading {
-            font-weight: bold;
-            color: var(--selected-color);
-            margin-top: 15px;
-            font-size: 1.1rem;
-        }
-
-        .split-layout {
-            display: flex;
-            gap: 30px;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        .left-panel {
-            flex: 1;
-            max-height: 65vh;
-            overflow-y: auto;
-            background-color: #1a1a1a;
-            padding: 25px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            font-size: 1rem;
-            line-height: 1.7;
-            color: #e0e0e0;
-        }
-
-        .left-panel h2 {
-            margin-top: 0;
-            color: #fff;
-            font-size: 1.4rem;
-            border-bottom: 1px solid #444;
-            padding-bottom: 10px;
-        }
-
-        .left-panel p {
-            margin-bottom: 18px;
-            text-align: justify;
-        }
-
-        .left-panel .paragraph-letter {
-            font-weight: bold;
-            color: var(--selected-color);
-            margin-right: 5px;
-            font-size: 1.1rem;
-        }
-
-        .writing-image {
-            width: 100%;
-            height: auto;
-            border-radius: 6px;
-            border: 1px solid #444;
-            margin-top: 15px;
-            background-color: #fff;
-        }
-
-        .right-panel {
-            flex: 1;
-            max-height: 65vh;
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-
-        .writing-textarea {
-            width: 100%;
-            height: 420px;
-            background-color: #262626;
-            border: 2px solid #444;
-            border-radius: 6px;
-            color: #fff;
-            font-family: 'Courier New', Courier, monospace, sans-serif;
-            font-size: 1.05rem;
-            line-height: 1.5;
-            padding: 15px;
-            box-sizing: border-box;
-            resize: none;
-            outline: none;
-        }
-
-        .writing-textarea:focus {
-            border-color: var(--selected-color);
-        }
-
-        .fill-blank-input.highlight-error,
-        .writing-textarea.highlight-error {
-            border-color: var(--error-color) !important;
-            background-color: #2f1919 !important;
-        }
-
-        .question-block.highlight-error {
-            border: 2px solid var(--error-color) !important;
-            background: #281c1c !important;
-        }
-
-        .word-count-badge {
-            margin-top: 10px;
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            font-weight: bold;
-        }
-
-        .word-count-badge span {
-            color: #ffb300;
-        }
-
-        .questions-wrapper::-webkit-scrollbar,
-        .left-panel::-webkit-scrollbar,
-        .right-panel::-webkit-scrollbar {
-            width: 6px;
-        }
-        .questions-wrapper::-webkit-scrollbar-thumb,
-        .left-panel::-webkit-scrollbar-thumb,
-        .right-panel::-webkit-scrollbar-thumb {
-            background-color: #444;
-            border-radius: 3px;
-        }
-
-        .question-block {
-            margin-bottom: 28px;
-            background: #222;
-            padding: 20px;
-            border-radius: 8px;
-            width: 100%;
-            box-sizing: border-box;
-            border: 2px solid transparent;
-        }
-
-        .question-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .question-subtitle {
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-            line-height: 1.4;
-        }
-
-        .options-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .option-item {
-            background-color: #2c2c2c;
-            padding: 12px 16px;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: background 0.2s, border 0.2s;
-            border: 2px solid transparent;
-        }
-
-        .option-item:hover {
-            background-color: #383838;
-        }
-
-        .option-item.selected {
-            background-color: #1c3d5a;
-            border-color: var(--selected-color);
-        }
-
-        .fill-blank-input {
-            background: #2a2a2a;
-            border: 1px solid #555;
-            border-radius: 4px;
-            color: #fff;
-            padding: 6px 10px;
-            font-size: 0.95rem;
-            width: 160px;
-            margin: 0 5px;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .fill-blank-input:focus {
-            border-color: var(--selected-color);
-        }
-
-        .section-header {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #ffb300;
-            margin: 20px 0 15px 0;
-            border-bottom: 1px dashed #444;
-            padding-bottom: 5px;
-            width: 100%;
-        }
-
-        .action-container {
-            width: 100%;
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 10px;
-        }
-
-        .end-title {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #4cd964;
-        }
-    </style>
-</head>
-<body>
-
-<div id="main-container" class="container">
-
-    <audio id="audio-volume" class="hidden-audio" src="resources/volume.wav" loop></audio>
-    <audio id="audio-part1" class="hidden-audio" src="resources/lis_part2_1.wav"></audio>
-    <audio id="audio-part2" class="hidden-audio" src="resources/lis_part2_2.wav"></audio>
-    <audio id="audio-part4" class="hidden-audio" src="resources/lis_part4.mp3"></audio>
-
-    <div id="screen-welcome" class="screen active">
-        <img class="logo-placeholder" src="resources/logo.png" alt="SDUFE Logo" onerror="this.style.display='none'">
-        <p class="instruction-text">
-            欢迎参加山东财经大学外国语学院雅思培训中心的定级测试。
-            接下来，我们将对你听力、阅读、写作三方面进行测试。
-            请在下方输入您的姓名，准备好后点击NEXT开始测试。
-        </p>
-        
-        <div class="input-group">
-            <label for="participant-name">请输入姓名 (Participant Name):</label>
-            <input type="text" id="participant-name" class="input-field" placeholder="例如: 张三" autocomplete="off">
-            <div id="name-error" class="error-message">请填写姓名后再开始测试。</div>
-        </div>
-
-        <button class="btn-next" onclick="validateAndNavigate()">Next</button>
-    </div>
-
-    <div id="screen-volume" class="screen">
-        <p class="instruction-text">
-            你现在听到的是测试音频，请调节电脑音量到合适的大小。
-
-            当你准备好后，按NEXT开始听力测试。
-        </p>
-        <div class="audio-status-indicator">
-            <div class="pulse-dot"></div>
-            <span>测试音频正在后台循环播放... 请调节音量</span>
-        </div>
-        <button class="btn-next" onclick="startPart1()">Next</button>
-    </div>
-
-    <div id="screen-part1" class="screen test-flow">
-        <div class="audio-status-indicator">
-            <div class="pulse-dot"></div>
-            <span>第一部分音频正在播放中... (Questions 11-16)</span>
-        </div>
-
-        <div class="questions-wrapper" id="wrapper-part1">
-            <div class="question-block" data-question="q11" data-type="single">
-                <div class="question-title">11 What was Jill surprised to find?</div>
-                <ul class="options-list">
-                    <li class="option-item" data-value="A">A. Work could be done soon</li>
-                    <li class="option-item" data-value="B">B. House poorly insulated</li>
-                    <li class="option-item" data-value="C">C. She could get financial help.</li>
-                </ul>
-            </div>
-
-            <div class="question-block" data-question="q12" data-type="single">
-                <div class="question-title">12 What does Jill say can do straight away?</div>
-                <ul class="options-list">
-                    <li class="option-item" data-value="A">A. Use energy-saving bulbs.</li>
-                    <li class="option-item" data-value="B">B. Turn down the thermostat.</li>
-                    <li class="option-item" data-value="C">C. Turn off their appliances completely.</li>
-                </ul>
-            </div>
-
-            <div class="question-block" data-question="q13" data-type="single">
-                <div class="question-title">13 What pleased Jill about the energy provider?</div>
-                <ul class="options-list">
-                    <li class="option-item" data-value="A">A. reduction in price for prompt payment</li>
-                    <li class="option-item" data-value="B">B. allowing customers to pay online</li>
-                    <li class="option-item" data-value="C">C. having a reduction in price of the energy-saving sources</li>
-                </ul>
-            </div>
-
-            <div class="question-block" data-question="q14" data-type="single">
-                <div class="question-title">14 What difficulty does Jill have with the energy meters?</div>
-                <ul class="options-list">
-                    <li class="option-item" data-value="A">A. They are difficult to access.</li>
-                    <li class="option-item" data-value="B">B. The figures are hard to read accurately.</li>
-                    <li class="option-item" data-value="C">C. She cannot tell whether they are for electricity or for gas.</li>
-                </ul>
-            </div>
-
-            <div class="question-block" data-question="q15" data-type="single">
-                <div class="question-title">15 What kind of energy-saving method is Jill going to take next?</div>
-                <ul class="options-list">
-                    <li class="option-item" data-value="A">A. Use an energy-saving boiler.</li>
-                    <li class="option-item" data-value="B">B. Have the walls checked for their insulation level.</li>
-                    <li class="option-item" data-value="C">C. Install double-glazed windows.</li>
-                </ul>
-            </div>
-
-            <div class="question-block" data-question="q16" data-type="single">
-                <div class="question-title">16 Why is Jill doubtful about renewable energy?</div>
-                <ul class="options-list">
-                    <li class="option-item" data-value="A">A. She thinks it is unsuitable for her house.</li>
-                    <li class="option-item" data-value="B">B. She does not understand the technical details.</li>
-                    <li class="option-item" data-value="C">C. She believes it is too expensive.</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="action-container">
-            <button class="btn-next" onclick="goToPart2()">Next</button>
-        </div>
-    </div>
-
-    <div id="screen-part2" class="screen test-flow">
-        <div class="audio-status-indicator">
-            <div class="pulse-dot"></div>
-            <span>第二部分音频正在播放中... (Questions 17-20)</span>
-        </div>
-
-        <div class="questions-wrapper" id="wrapper-part2">
-            <div class="question-block" data-question="q17_18" data-type="multi" data-limit="2">
-                <div class="question-title">Questions 17 and 18</div>
-                <div class="question-subtitle">Choose TWO letters, A-E. Which TWO water-saving tips are not recommended by Jill?</div>
-                <ul class="options-list">
-                    <li class="option-item" data-value="A">A. Use more showers than baths.</li>
-                    <li class="option-item" data-value="B">B. Keep the washing machine full before using it.</li>
-                    <li class="option-item" data-value="C">C. Boil only as much water as you need.</li>
-                    <li class="option-item" data-value="D">D. Turn off the taps while you are brushing your teeth.</li>
-                    <li class="option-item" data-value="E">E. Repair leaking taps.</li>
-                </ul>
-            </div>
-
-            <div class="question-block" data-question="q19_20" data-type="multi" data-limit="2">
-                <div class="question-title">Questions 19 and 20</div>
-                <div class="question-subtitle">Choose TWO letters, A-E. Which TWO topics do people most frequently ask about?</div>
-                <ul class="options-list">
-                    <li class="option-item" data-value="A">A. the ideal temperature setting on the thermostat</li>
-                    <li class="option-item" data-value="B">B. whether to leave the light on or not</li>
-                    <li class="option-item" data-value="C">C. whether to use a computer or laptop to watch movies</li>
-                    <li class="option-item" data-value="D">D. how to work out the operating cost of appliances</li>
-                    <li class="option-item" data-value="E">E. whether solar panels only work on sunny days</li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="action-container">
-            <button class="btn-next" onclick="goToPart4()">Next</button>
-        </div>
-    </div>
-
-    <div id="screen-part4" class="screen test-flow">
-        <div class="audio-status-indicator">
-            <div class="pulse-dot"></div>
-            <span>第四部分音频正在播放中... (Questions 31-40)</span>
-        </div>
-
-        <div class="section-header">PART 4 Questions 31-40</div>
-        <div class="question-subtitle" style="margin-bottom: 20px;">Complete the notes below. Write <strong>ONE WORD ONLY</strong> for each answer.</div>
-
-        <div class="notes-completion-box">
-            <h3>Introduction: The Early History of Salt</h3>
-            <ul>
-                <li>Salt is essential for human <strong>31.</strong> <input type="text" id="q31" class="fill-blank-input" placeholder="输入单词..."></li>
-            </ul>
-
-            <div class="notes-heading">Ancient Rome</div>
-            <ul>
-                <li>The word <strong>32.</strong> <input type="text" id="q32" class="fill-blank-input" placeholder="输入单词..."> comes from the Latin word 'solarium argentum', which was used to describe the payment to Roman soldiers.</li>
-            </ul>
-
-            <div class="notes-heading">Ancient Sweden</div>
-            <ul>
-                <li>Animals were kept in the local <strong>33.</strong> <input type="text" id="q33" class="fill-blank-input" placeholder="输入单词..."> in Sweden.</li>
-                <li>Fresh meat was only available in <strong>34.</strong> <input type="text" id="q34" class="fill-blank-input" placeholder="输入单词..."> at the right time of year.</li>
-                <li>Salt has been used widely: we can tell from the diet of the <strong>35.</strong> <input type="text" id="q35" class="fill-blank-input" placeholder="输入单词..."> in ancient Sweden.</li>
-                <li><strong>36.</strong> <input type="text" id="q36" class="fill-blank-input" placeholder="输入单词..."> consumption increased rapidly because the food was much too salty.</li>
-            </ul>
-
-            <div class="notes-heading">Salt sources</div>
-            <ul>
-                <li>People mainly extract salt from oceans and <strong>37.</strong> <input type="text" id="q37" class="fill-blank-input" placeholder="输入单词..."> water.</li>
-                <li>Salt from spring water is more <strong>38.</strong> <input type="text" id="q38" class="fill-blank-input" placeholder="输入单词..."> and purer compared to that from sea water.</li>
-            </ul>
-
-            <div class="notes-heading">Salt distribution</div>
-            <p style="margin-left: 20px; font-weight: bold; color: #aaa; margin-bottom: 5px;">- in ancient Sweden</p>
-            <ul>
-                <li>Locals needed to protect the <strong>39.</strong> <input type="text" id="q39" class="fill-blank-input" placeholder="输入单词..."> in the basins by which they imported salt.</li>
-            </ul>
-            <p style="margin-left: 20px; font-weight: bold; color: #aaa; margin-bottom: 5px;">- in other ancient countries</p>
-            <ul>
-                <li>People carrying salt around were seen as a natural means of <strong>40.</strong> <input type="text" id="q40" class="fill-blank-input" placeholder="输入单词...">.</li>
-            </ul>
-        </div>
-
-        <div class="action-container">
-            <button class="btn-next" onclick="goToReading()">Next</button>
-        </div>
-    </div>
-
-    <div id="screen-reading" class="screen test-flow">
-        <div class="split-layout">
-            <div class="left-panel">
-                <h2>Persistent Bullying</h2>
-                <p><span class="paragraph-letter">A</span> Persistent bullying is one of the worst experiences a child can face. How can it be prevented? Peter Smith, Professor of Psychology at the University of Sheffield, directed the Sheffield Anti-Bullying Intervention Project, funded by the Development for Education. Here he reports on his findings.</p>
-                <p>Bullying can take a variety of forms, from the verbal - being taunted or called hurtful names - to the physical - being kicked or shoved - as well as indirect forms, such as being excluded from social groups. A survey I conducted with Irene Whitney found that in British primary schools up to a quarter of pupils reported experience of bullying, which in about one in ten cases was persistent. There was less bullying in secondary schools, with about one in twenty-five suffering persistent bullying, but these cases may be particularly recalcitrant.</p>
-                <p><span class="paragraph-letter">B</span> Bullying is clearly unpleasant, and can make the child experiencing it feel unworthy and depressed. In extreme cases it can even lead to suicide, though this is thankfully rare. Victimised pupils are more likely to experience difficulties with interpersonal relationships as adults, while children who persistently bully are more likely to grow up to be physically violent, and convicted of anti-social offences.</p>
-                <p><span class="paragraph-letter">C</span> Until recently, not much was known about the topic, and little help was available to teachers to deal with bullying. Perhaps as a consequence, schools would often deny the problem. "There is no bullying in this school" was a common refrain, almost to the point of being a joke. Lucky, more schools are now saying: "There is not much bullying here, but when it happens we take it seriously."</p>
-                <p><span class="paragraph-letter">D</span> More than half of all schools in the region are taking part in the Sheffield Anti-Bullying Intervention Project. This involves a package of materials, including a video for classroom discussion and a handbook for teachers. The evaluation of the project looked at how individual schools used these materials and what impact they had on levels of bullying. This showed that the schools that made the most progress were those where the project was supported by the whole school community, including parents and governors.</p>
-                <p><span class="paragraph-letter">E</span> What steps should schools take to reduce bullying? The most important step is for the school authorities to produce a policy which makes the school's attitude towards bullying quite clear. It should include detailed guidelines as to how the school and its staff will react if bullying occurs. This is particularly useful in the early part of the process, as a way of raising awareness and encouraging discussion. On its own, however, it is insufficient to bring about a permanent solution.</p>
-                <p><span class="paragraph-letter">F</span> Effective work can also be done with individual pupils and small groups. For example, potential victims of bullying can be trained to be more self-confident. Or again, in dealing with group bullying, a "no blame" approach, which avoids confronting the offender too directly, is often effective. Playground supervision will be more effective if members of staff are trained to recognise the difference between bullying and mere playful fighting.</p>
-            </div>
-
-            <div class="right-panel" id="wrapper-reading">
-                <div class="section-header">Questions 1 - 4 (TRUE / FALSE / NOT GIVEN)</div>
-                <div class="question-subtitle">Do the following statements agree with the information given in the Reading Passage?</div>
-
-                <div class="question-block" data-question="r1" data-type="single">
-                    <div class="question-title">1. A survey showed that bullying is more common in secondary schools than primary schools.</div>
-                    <ul class="options-list">
-                        <li class="option-item" data-value="TRUE">TRUE</li>
-                        <li class="option-item" data-value="FALSE">FALSE</li>
-                        <li class="option-item" data-value="NOT GIVEN">NOT GIVEN</li>
-                    </ul>
-                </div>
-
-                <div class="question-block" data-question="r2" data-type="single">
-                    <div class="question-title">2. Children who bully persistently are more likely to commit crimes when they grow up.</div>
-                    <ul class="options-list">
-                        <li class="option-item" data-value="TRUE">TRUE</li>
-                        <li class="option-item" data-value="FALSE">FALSE</li>
-                        <li class="option-item" data-value="NOT GIVEN">NOT GIVEN</li>
-                    </ul>
-                </div>
-
-                <div class="question-block" data-question="r3" data-type="single">
-                    <div class="question-title">3. Teachers in Sheffield schools received special training before the project started.</div>
-                    <ul class="options-list">
-                        <li class="option-item" data-value="TRUE">TRUE</li>
-                        <li class="option-item" data-value="FALSE">FALSE</li>
-                        <li class="option-item" data-value="NOT GIVEN">NOT GIVEN</li>
-                    </ul>
-                </div>
-
-                <div class="question-block" data-question="r4" data-type="single">
-                    <div class="question-title">4. The project was most successful in schools where parents were actively involved.</div>
-                    <ul class="options-list">
-                        <li class="option-item" data-value="TRUE">TRUE</li>
-                        <li class="option-item" data-value="FALSE">FALSE</li>
-                        <li class="option-item" data-value="NOT GIVEN">NOT GIVEN</li>
-                    </ul>
-                </div>
-
-                <div class="section-header">Questions 5 - 9 (Summary Completion)</div>
-                <div class="question-subtitle">Choose <strong>NO MORE THAN TWO WORDS</strong> from the passage for each answer.</div>
-
-                <div class="question-block" data-type="text-entry" id="reading-blanks-block">
-                    <div class="question-title">Steps to reduce bullying:</div>
-                    <p style="line-height: 1.8; color: #ddd;">
-                        The most important step is for the school authorities to produce a 
-                        <strong>(5)</strong> <input type="text" id="r5" class="fill-blank-input" placeholder="输入答案..."> 
-                        which makes the school's attitude towards bullying quite clear. It should include detailed 
-                        <strong>(6)</strong> <input type="text" id="r6" class="fill-blank-input" placeholder="输入答案..."> 
-                        as to how the school and its staff will react if bullying occurs. In addition, action can be taken through the classroom discussion. On its own, however, it is insufficient to bring about a permanent solution.
-                    </p>
-                    <p style="line-height: 1.8; color: #ddd;">
-                        Effective work can also be done with individual pupils and small groups. For example, potential 
-                        <strong>(7)</strong> <input type="text" id="r7" class="fill-blank-input" placeholder="输入答案..."> 
-                        of bullying can be trained to be more self-confident. Or again, in dealing with group bullying, a 
-                        <strong>(8)</strong> <input type="text" id="r8" class="fill-blank-input" placeholder="输入答案..."> 
-                        approach, which avoids confronting the offender too directly, is often effective. 
-                        Playground supervision will be more effective if members of staff are trained to recognise the difference between bullying and mere 
-                        <strong>(9)</strong> <input type="text" id="r9" class="fill-blank-input" placeholder="输入答案...">.
-                    </p>
-                </div>
-
-                <div class="section-header">Question 10 (Multiple Choice)</div>
-                <div class="question-block" data-question="r10" data-type="single">
-                    <div class="question-title">10. Which of the following is the most suitable title for the Reading Passage?</div>
-                    <ul class="options-list">
-                        <li class="option-item" data-value="A">A. Bullying: what parents can do</li>
-                        <li class="option-item" data-value="B">B. Bullying: are the media to blame?</li>
-                        <li class="option-item" data-value="C">C. Bullying: the link with academic failure</li>
-                        <li class="option-item" data-value="D">D. Bullying: from crisis management to prevention</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div class="action-container">
-            <button class="btn-next" onclick="goToWriting()">Next</button>
-        </div>
-    </div>
-
-    <div id="screen-writing" class="screen test-flow">
-        <div class="section-header">WRITING TASK</div>
-        <div class="question-subtitle" style="margin-bottom: 20px;">
-            You should spend about 20 minutes on this task. Write at least <strong>150 words</strong>.
-        </div>
-
-        <div class="split-layout">
-            <div class="left-panel">
-                <p style="font-weight: bold; color: #fff;">
-                    The line graph below shows the number of users of three different kinds of television service over a period of time. 
-                    Summarize the information by selecting and reporting the main features, and make comparisons where relevant.
-                </p>
-                <img class="writing-image" src="resources/writing.png" alt="Television Service Line Graph" onerror="this.style.display='none'">
-            </div>
-
-            <div class="right-panel">
-                <textarea id="writing-essay" class="writing-textarea" placeholder="在此处开始输入您的作文 (Type your response here...)" oninput="updateWordCount()"></textarea>
-                <div class="word-count-badge">Word Count: <span id="word-count-val">0</span> words</div>
-            </div>
-        </div>
-
-        <div class="action-container">
-            <button class="btn-next" onclick="submitTest()">Submit Test</button>
-        </div>
-    </div>
-
-    <div id="screen-result" class="screen">
-        <div class="end-title">测试提交成功！</div>
-        <p class="instruction-text" style="margin-top: 20px;">
-            谢谢，您的答题数据已成功保存。系统已自动为您生成本地答题报告文本包。
-            请点击下方按钮下载您的答题文本文件，并将其发送给负责登记的老师。
-        </p>
-        <button class="btn-next" style="background-color: #0076ff;" onclick="downloadDataFile()">Download Report</button>
-    </div>
-
-</div>
-
 <script>
     let studentName = "";
     let answers = {};
     let currentActiveScreen = "screen-welcome";
+    
+    // === 倒计时相关全局变量 ===
+    let timerInterval = null; 
+
+    // === 核心配置：在此处设置每个界面的限制时间（单位：秒） ===
+    const TIME_LIMITS = {
+        'screen-part1': 180,  // 听力 Part 1 限时 3 分钟 (示例)
+        'screen-part2': 120,  // 听力 Part 2 限时 2 分钟 (示例)
+        'screen-part4': 300,  // 听力 Part 4 限时 5 分钟 (示例)
+        'screen-reading': 1200, // 阅读限时 20 分钟 (示例)
+        'screen-writing': 1200  // 写作限时 20 分钟 (示例)
+    };
 
     // 用于保存所有的DOM音频引用
     const audios = {
@@ -739,6 +23,7 @@
         part4: document.getElementById('audio-part4')
     };
 
+    // 修改后的切换页面函数
     function showScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
@@ -750,6 +35,104 @@
         } else {
             mainContainer.classList.remove('wide-mode');
         }
+
+        // 切换页面时，启动对应的倒计时
+        startScreenTimer(screenId);
+    }
+
+    // === 新增：倒计时控制逻辑 ===
+    function startScreenTimer(screenId) {
+        // 先清除之前的倒计时
+        if (timerInterval) clearInterval(timerInterval);
+
+        // 如果当前页面不需要限时，直接返回
+        if (!TIME_LIMITS[screenId]) return;
+
+        let timeLeft = TIME_LIMITS[screenId];
+
+        // 动态寻找当前激活页面里的音频状态提示栏（.audio-status-indicator）或者小标题，把倒计时塞进去显示
+        // 如果没有现成的提示栏，可以在界面上放一个统一的倒计时显示
+        const indicator = document.querySelector(`#${screenId} .audio-status-indicator`) || 
+                          document.querySelector(`#${screenId} .section-header`);
+        
+        let timerDisplay = document.getElementById(`timer-${screenId}`);
+        if (!timerDisplay) {
+            timerDisplay = document.createElement('span');
+            timerDisplay.id = `timer-${screenId}`;
+            timerDisplay.style.cssText = "color: #ff3b30; font-weight: bold; margin-left: 15px; float: right;";
+            if (indicator) {
+                indicator.appendChild(timerDisplay);
+            } else {
+                // 如果找不到插入点，强行插在页面最顶部
+                document.getElementById(screenId).insertBefore(timerDisplay, document.getElementById(screenId).firstChild);
+            }
+        }
+
+        function updateDisplay() {
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            timerDisplay.innerText = `⏳ 剩余时间: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        updateDisplay();
+
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            updateDisplay();
+
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                alert("时间到！系统将自动保存当前页面的作答并进入下一页。");
+                forceNavigateNext(screenId); // 时间到，执行强制跳转
+            }
+        }, 1000);
+    }
+
+    // === 新增：超时强转逻辑（绕过未答题的校验） ===
+    function forceNavigateNext(currentScreen) {
+        if (currentScreen === 'screen-part1') {
+            // 强行把当前能拿到的数据塞进 answers
+            ['q11', 'q12', 'q13', 'q14', 'q15', 'q16'].forEach(q => {
+                const selected = document.querySelector(`[data-question="${q}"] .option-item.selected`);
+                if (selected) answers[q] = selected.getAttribute('data-value');
+            });
+            if (audios.part1) { audios.part1.pause(); audios.part1.currentTime = 0; }
+            showScreen('screen-part2');
+            if (audios.part2) audios.part2.play();
+
+        } else if (currentScreen === 'screen-part2') {
+            ['q17_18', 'q19_20'].forEach(q => {
+                const opts = [];
+                document.querySelectorAll(`[data-question="${q}"] .option-item.selected`).forEach(el => {
+                    opts.push(el.getAttribute('data-value'));
+                });
+                answers[q] = opts;
+            });
+            if (audios.part2) { audios.part2.pause(); audios.part2.currentTime = 0; }
+            showScreen('screen-part4');
+            if (audios.part4) audios.part4.play();
+
+        } else if (currentScreen === 'screen-part4') {
+            ['q31', 'q32', 'q33', 'q34', 'q35', 'q36', 'q37', 'q38', 'q39', 'q40'].forEach(id => {
+                answers[id] = document.getElementById(id).value.trim();
+            });
+            if (audios.part4) { audios.part4.pause(); audios.part4.currentTime = 0; }
+            showScreen('screen-reading');
+
+        } else if (currentScreen === 'screen-reading') {
+            ['r1', 'r2', 'r3', 'r4', 'r10'].forEach(q => {
+                const selected = document.querySelector(`[data-question="${q}"] .option-item.selected`);
+                if (selected) answers[q] = selected.getAttribute('data-value');
+            });
+            ['r5', 'r6', 'r7', 'r8', 'r9'].forEach(id => {
+                answers[id] = document.getElementById(id).value.trim();
+            });
+            showScreen('screen-writing');
+
+        } else if (currentScreen === 'screen-writing') {
+            answers["writing_essay"] = document.getElementById('writing-essay').value.trim();
+            showScreen('screen-result');
+        }
     }
 
     // 绑定多选题与单选题的选项点击事件
@@ -760,7 +143,6 @@
             const qType = block.getAttribute('data-type');
             const itemValue = this.getAttribute('data-value');
 
-            // 移除红色的未答警告框
             block.classList.remove('highlight-error');
 
             if (qType === 'single') {
@@ -804,6 +186,14 @@
             }
             updateWordCount();
         });
+
+        // === 新增：防作弊逻辑，全面禁止复制、粘贴、剪切 ===
+        ['paste', 'copy', 'cut'].forEach(eventName => {
+            writingArea.addEventListener(eventName, function(e) {
+                e.preventDefault();
+                alert("为了考试公平，作文输入框已禁用复制、剪切和粘贴功能！");
+            });
+        });
     }
 
     function validateAndNavigate() {
@@ -820,7 +210,6 @@
         
         showScreen('screen-volume');
         
-        // 关键修复：借由用户的点击事件（Next）直接安全触发媒体播放
         if (audios.volume) {
             audios.volume.play().catch(err => {
                 console.log("Audio play deferred or blocked:", err);
@@ -838,7 +227,6 @@
     }
 
     function goToPart2() {
-        // 检查听力第一部分是否有漏答
         let part1Questions = ['q11', 'q12', 'q13', 'q14', 'q15', 'q16'];
         let missing = [];
         
@@ -864,7 +252,6 @@
     }
 
     function goToPart4() {
-        // 检查听力第二部分多选题是否有漏答
         let part2Questions = ['q17_18', 'q19_20'];
         let missing = [];
 
@@ -890,7 +277,6 @@
     }
 
     function goToReading() {
-        // 检查听力第四部分填空题是否有空缺
         let part4Ids = ['q31', 'q32', 'q33', 'q34', 'q35', 'q36', 'q37', 'q38', 'q39', 'q40'];
         let unfilledCount = 0;
 
@@ -917,7 +303,6 @@
     }
 
     function goToWriting() {
-        // 检查阅读选择题
         let readChoices = ['r1', 'r2', 'r3', 'r4', 'r10'];
         let missing = false;
 
@@ -928,7 +313,6 @@
             }
         });
 
-        // 检查阅读填空题
         let readBlanks = ['r5', 'r6', 'r7', 'r8', 'r9'];
         let blankBlockError = false;
 
@@ -976,6 +360,10 @@
             return;
         }
         answers["writing_essay"] = essayText;
+        
+        // 结束时清除全局定时器
+        if (timerInterval) clearInterval(timerInterval);
+        
         showScreen('screen-result');
     }
 
@@ -1026,7 +414,3 @@
         document.body.removeChild(element);
     }
 </script>
-
-<script src="intermediate.js"></script>
-</body>
-</html>
