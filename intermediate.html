@@ -694,55 +694,38 @@
         <div class="action-container"><button class="btn-next" onclick="goToWriting()">Next</button></div>
     </div>
 
-    <div id="screen-writing" class="screen test-flow">
-        <div class="section-header">WRITING TASK</div>
-        <div class="question-subtitle">You should spend about 20 minutes on this task. Write at least <strong>150 words</strong>. (⚠️系统已开启防作弊：禁止复制粘贴外部文本)</div>
-        <div class="split-layout">
-            <div class="left-panel">
-                <p style="font-weight: bold; color: #fff;">The line graph below shows the number of users of three different kinds of television service...</p>
-                <img class="writing-image" src="resources/writing.png" alt="Graph" onerror="this.style.display='none'">
-            </div>
-            <div class="right-panel">
-                <textarea id="writing-essay" class="writing-textarea" placeholder="请在此处纯手打输入您的作文，禁止右键和粘贴..." oninput="updateWordCount()"></textarea>
-                <div class="word-count-badge">
-                    Word Count: <span id="word-count-val">0</span> words
-                    <span id="writing-limit-warning" class="error-text">(字数未达150词，暂无法提交)</span>
-                </div>
-            </div>
+<div id="screen-writing" class="screen test-flow">
+    <div class="section-header">WRITING TASK</div>
+    <div class="question-subtitle">You should spend about 20 minutes on this task. Write at least <strong>150 words</strong>. (⚠️系统已开启防作弊：禁止复制粘贴外部文本)</div>
+    <div class="split-layout">
+        <div class="left-panel">
+            <p style="font-weight: bold; color: #fff;">The line graph below shows the number of users of three different kinds of television service...</p>
+            <img class="writing-image" src="resources/writing.png" alt="Graph" onerror="this.style.display='none'">
         </div>
-        <div class="action-container"><button id="btn-submit-essay" class="btn-next" onclick="goToSpeaking()" disabled>Next (Go To Speaking)</button></div>
-    </div>
-
-    <div id="screen-speaking" class="screen test-flow">
-        <div class="section-header">SPEAKING SECTION (口语测试)</div>
-        <p class="instruction-text" id="speaking-intro-text">
-            点击下方按钮开始口语测试。
-            注意：系统将【全程开启录音】，直至回答完所有题目。请确保在安静的环境下测试，并允许浏览器麦克风权限！
-        </p>
-        
-        <div class="speaking-card">
-            <div class="speaking-track-title" id="speaking-stage-title">准备就绪</div>
-            <div class="audio-status-indicator" style="justify-content: center;">
-                <div id="dot-speaking-mic" class="pulse-dot"></div>
-                <span id="status-speaking-text">等待录音机启动...</span>
+        <div class="right-panel">
+            <textarea id="writing-essay" class="writing-textarea" placeholder="请在此处纯手打输入您的作文，禁止右键和粘贴..." oninput="updateWordCount()"></textarea>
+            <div class="word-count-badge">
+                Word Count: <span id="word-count-val">0</span> words
+                <span id="writing-limit-warning" class="error-text">(字数未达150词，暂无法提交)</span>
             </div>
         </div>
-
-        <div class="action-container" style="justify-content: center; width:100%;">
-            <button id="btn-start-speaking" class="btn-next" style="background-color: #0076ff;" onclick="initiateSpeakingChain()">开始口语测试 (全程录音)</button>
-        </div>
     </div>
-
-    <div id="screen-result" class="screen">
-        <div class="end-title">全部测试提交成功！</div>
-        <p class="instruction-text" style="margin-top: 20px;">
-            您的文本答案与口语录音均已在本地成功打包！
-            系统已自动为您弹出【答题文本报告.txt】与【口语测试录音.wav】的下载窗口。
-            如果由于浏览器拦截未能自动下载，请手动点击下方按钮重新下载。
-        </p>
-        <button class="btn-next" style="background-color: #0076ff; margin-bottom:10px;" onclick="downloadDataFile()">1. 下载文本报告</button>
-        <button id="btn-download-audio-manual" class="btn-next" style="background-color: #4cd964;" onclick="downloadAudioFileManual()">2. 下载口语录音</button>
+    <div class="action-container">
+        <button id="btn-submit-essay" class="btn-next" onclick="submitTest()" disabled>Submit Test</button>
     </div>
+</div>
+
+<div id="screen-result" class="screen">
+    <div class="end-title" style="color: #4cd964; font-size: 2rem; font-weight: bold;">听力、阅读、写作阶段已成功提交！</div>
+    <p class="instruction-text" style="margin-top: 20px; line-height: 1.8;">
+        您的笔试文本答案已在本地成功打包下载！<br>
+        <strong>【重要提示】</strong>：请不要关闭网页。您还需要参加最后一部分的口语定级测试。<br>
+        请务必点击下方蓝色按钮，跨入独立的口语测试考场界面。
+    </p>
+    <button class="btn-next" style="background-color: #0076ff; padding: 15px 45px; font-size: 1.1rem;" onclick="location.href='speaking.html'">
+        👉 进入第二阶段：开始口语测试
+    </button>
+</div>
 
 </div>
 

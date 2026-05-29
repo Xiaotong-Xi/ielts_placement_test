@@ -2,25 +2,22 @@ let studentName = "";
 let answers = {};
 let currentActiveScreen = "screen-welcome";
 
-// 计时控制
+// 计时控制核心变量
 let countdownInterval = null;
 let currentRemainingSeconds = 0;
 
-// 口语串联录音核心变量
-let mediaRecorder = null;
-let audioChunks = [];
-let speakingAudioBlob = null; 
-
+// 音频资源配置（已精简口语相关音轨）
 const audios = {
     volume: document.getElementById('audio-volume'),
     part1: document.getElementById('audio-part1'),
     part2: document.getElementById('audio-part2'),
-    part4: document.getElementById('audio-part4'),
-    speakQ1: document.getElementById('audio-speak-q1'),
-    speakQ2: document.getElementById('audio-speak-q2'),
-    speakQ3: document.getElementById('audio-speak-q3')
+    part4: document.getElementById('audio-part4')
 };
 
+/**
+ * 切换屏幕核心驱动
+ * @param {string} screenId 
+ */
 function showScreen(screenId) {
     if (!screenId) return;
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -29,6 +26,7 @@ function showScreen(screenId) {
     if (targetScreen) targetScreen.classList.add('active');
     currentActiveScreen = screenId;
 
+    // 针对阅读和写作部分开启大宽屏模式
     const mainContainer = document.getElementById('main-container');
     if (mainContainer) {
         if (['screen-reading', 'screen-writing'].includes(screenId)) {
@@ -38,9 +36,10 @@ function showScreen(screenId) {
         }
     }
     
+    // 控制顶部全局计时器状态条的显隐
     const timerBar = document.getElementById('top-timer-bar');
     if (timerBar) {
-        if (['screen-welcome', 'screen-volume', 'screen-speaking', 'screen-result'].includes(screenId)) {
+        if (['screen-welcome', 'screen-volume', 'screen-result'].includes(screenId)) {
             timerBar.style.display = 'none';
             clearInterval(countdownInterval);
         } else {
@@ -49,6 +48,12 @@ function showScreen(screenId) {
     }
 }
 
+/**
+ * 倒计时定时器引擎
+ * @param {number} durationSeconds 倒计时长（秒）
+ * @param {string} labelText 阶段提示文字
+ * @param {function} timeoutCallback 归零触发回调
+ */
 function startStageTimer(durationSeconds, labelText, timeoutCallback) {
     clearInterval(countdownInterval);
     currentRemainingSeconds = durationSeconds;
@@ -77,6 +82,9 @@ function startStageTimer(durationSeconds, labelText, timeoutCallback) {
     }, 1000);
 }
 
+/**
+ * 欢迎页姓名验证
+ */
 function validateAndNavigate() {
     const nameInput = document.getElementById('participant-name');
     const nameError = document.getElementById('name-error');
@@ -93,10 +101,13 @@ function validateAndNavigate() {
     showScreen('screen-volume');
     if (audios.volume) {
         audios.volume.currentTime = 0;
-        audios.volume.play().catch(e => console.log("Audio play deferred: " + e));
+        audios.volume.play().catch(e => console.log("音频播放受限制: " + e));
     }
 }
 
+/**
+ * 听力音频生命周期同步监视器
+ */
 function bindListeningAudioTimer(audioElement, partId, nextStepCallback) {
     if (!audioElement) return;
     const statusSpan = document.getElementById(`status-${partId}`);
@@ -105,16 +116,17 @@ function bindListeningAudioTimer(audioElement, partId, nextStepCallback) {
     if (statusSpan) statusSpan.innerText = "音频正在准备播放...";
 
     audioElement.onplay = function() {
-        if (statusSpan) statusSpan.innerText = "音频正在播放中... 请在下方作答";
+        if (statusSpan) statusSpan.innerText = "音频正在播放中... 请抓紧时间在下方作答";
         const timerClock = document.getElementById('timer-clock');
         if (timerClock) timerClock.innerText = "播放中";
     };
 
     audioElement.onended = function() {
-        if (statusSpan) statusSpan.innerText = "音频已播放完毕！当前作答时间剩余：";
+        if (statusSpan) statusSpan.innerText = "音频已播放完毕！当前Part缓冲作答时间剩余：";
         if (pulseDot) pulseDot.classList.add('timer-countdown');
 
-        startStageTimer(60, "听力答题剩余时间:", () => {
+        // 听力结束后给予 60 秒单独的填表/检查缓冲作答时间
+        startStageTimer(60, "听力Part答题缓冲时间:", () => {
             alert("答题时间已到，系统已自动为您保存当前页答案并切入下一页面。");
             nextStepCallback(true); 
         });
@@ -164,6 +176,7 @@ function goToReading(isTimeout = false) {
     if (audios.part4) audios.part4.pause();
     showScreen('screen-reading');
     
+    // 阅读部分 15 分钟倒计时（900秒）
     startStageTimer(900, "阅读部分剩余时间:", () => {
         alert("阅读测试时间已到！系统已自动为您保存当前答案并切换到写作部分。");
         goToWriting(true); 
@@ -175,12 +188,16 @@ function goToWriting(isTimeout = false) {
     showScreen('screen-writing');
     updateWordCount(); 
 
+    // 写作部分 20 分钟倒计时（1200秒）
     startStageTimer(1200, "写作部分剩余时间:", () => {
-        alert("写作测试时间已到！系统正在为您强行跳转至口语模块...");
-        goToSpeaking(true); 
+        alert("写作测试时间已到！系统正在为您强行收卷并生成数据包...");
+        submitTest(); 
     });
 }
 
+/**
+ * 实时监控作文词数及字数锁控制
+ */
 function updateWordCount() {
     const essayTextarea = document.getElementById('writing-essay');
     const wordCountVal = document.getElementById('word-count-val');
@@ -190,12 +207,14 @@ function updateWordCount() {
     if (!essayTextarea) return;
 
     const text = essayTextarea.value.trim();
+    // 匹配多个空格做分割，精准计算纯英文词数
     const words = text === "" ? [] : text.split(/\s+/);
     const count = words.length;
 
     if (wordCountVal) wordCountVal.innerText = count;
     answers['writing_essay'] = text;
 
+    // 雅思小作文核心字数坎：满150个词解锁提交按钮，未满锁定
     if (count >= 150) {
         if (limitWarning) limitWarning.style.display = 'none';
         if (submitBtn) submitBtn.disabled = false;
@@ -205,17 +224,25 @@ function updateWordCount() {
     }
 }
 
+/**
+ * 提取并缓存所有输入填空题的数据答案
+ */
 function saveInputAnswers() {
+    // 听力 Part 4 (Q31 - Q40)
     for (let i = 31; i <= 40; i++) {
         const el = document.getElementById(`q${i}`);
         if (el) answers[`q${i}`] = el.value.trim();
     }
+    // 阅读 填空题 (R5 - R9)
     for (let i = 5; i <= 9; i++) {
         const el = document.getElementById(`r${i}`);
         if (el) answers[`r${i}`] = el.value.trim();
     }
 }
 
+/**
+ * 全局监听选择题点击事件高亮并捕获数据答案（支持单选与多选限制）
+ */
 document.querySelectorAll('.option-item').forEach(item => {
     item.addEventListener('click', function() {
         const block = this.closest('.question-block');
@@ -237,7 +264,7 @@ document.querySelectorAll('.option-item').forEach(item => {
                 answers[qId] = answers[qId].filter(v => v !== itemValue);
             } else {
                 if (answers[qId].length >= limit) {
-                    alert(`最多选择 ${limit} 个选项！`);
+                    alert(`最多只能选择 ${limit} 个选项！`);
                     return;
                 }
                 this.classList.add('selected');
@@ -247,111 +274,29 @@ document.querySelectorAll('.option-item').forEach(item => {
     });
 });
 
-function goToSpeaking(isTimeout = false) {
-    saveInputAnswers();
-    showScreen('screen-speaking');
-}
-
-function initiateSpeakingChain() {
-    document.getElementById('btn-start-speaking').disabled = true;
-    document.getElementById('status-speaking-text').innerText = "正在请求麦克风设备权限...";
-
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(stream => {
-            audioChunks = [];
-            mediaRecorder = new MediaRecorder(stream);
-            
-            mediaRecorder.ondataavailable = event => {
-                if (event.data.size > 0) audioChunks.push(event.data);
-            };
-
-            mediaRecorder.onstop = () => {
-                speakingAudioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                stream.getTracks().forEach(track => track.stop());
-                executeFinalSubmission();
-            };
-
-            mediaRecorder.start(1000); 
-            
-            const micDot = document.getElementById('dot-speaking-mic');
-            if(micDot) micDot.classList.add('recording-active');
-
-            runSpeakingQuestionTrack(1);
-        })
-        .catch(err => {
-            alert("呼叫麦克风失败！请确保使用HTTPS访问或localhost环境，并允许权限。错误原因: " + err);
-            document.getElementById('btn-start-speaking').disabled = false;
-            document.getElementById('status-speaking-text').innerText = "设备启动失败。";
-        });
-}
-
-function runSpeakingQuestionTrack(questionIndex) {
-    const stageTitle = document.getElementById('speaking-stage-title');
-    const statusText = document.getElementById('status-speaking-text');
-
-    if (questionIndex > 3) {
-        statusText.innerText = "口语测试结束，正在打包录音中...";
-        if (mediaRecorder && mediaRecorder.state !== "inactive") {
-            mediaRecorder.stop(); 
-        }
-        return;
-    }
-
-    stageTitle.innerText = `Speaking - Question ${questionIndex} / 3`;
-    statusText.innerText = "正在播放提问音频，请仔细聆听...";
-
-    const currentAudio = audios[`speakQ${questionIndex}`];
-    if (!currentAudio) {
-        runSpeakingQuestionTrack(questionIndex + 1);
-        return;
-    }
-
-    currentAudio.currentTime = 0;
-    currentAudio.play().catch(e => console.log("音轨播放受限: " + e));
-
-    currentAudio.onended = function() {
-        let responseLimit = 20; 
-        if(questionIndex === 3) responseLimit = 35; 
-
-        let remaining = responseLimit;
-        statusText.innerText = `🔴 正在录制您的回答！请开始说话（剩余 ${remaining} 秒）...`;
-
-        let answerTimer = setInterval(() => {
-            remaining--;
-            if (remaining <= 0) {
-                clearInterval(answerTimer);
-                runSpeakingQuestionTrack(questionIndex + 1);
-            } else {
-                statusText.innerText = `🔴 正在录制您的回答！请开始说话（剩余 ${remaining} 秒）...`;
-            }
-        }, 1000);
-    };
-}
-
-function executeFinalSubmission() {
+/**
+ * 🛠️ 核心修改：真正的笔试总提交控制入口
+ */
+function submitTest() {
+    // 1. 强制提取保存全部数据
+    saveInputAnswers(); 
+    
+    // 2. 切换至带有跳转 speaking.html 的最终结果转场页面
     showScreen('screen-result');
-    downloadDataFile();      
-    downloadAudioFileManual(); 
+    
+    // 3. 自动并发弹窗下载本地数据纯文本 TXT 答题大报告
+    downloadDataFile();
 }
 
-function downloadAudioFileManual() {
-    if (!speakingAudioBlob) {
-        alert("录音数据未生成或为空！");
-        return;
-    }
-    const audioURL = URL.createObjectURL(speakingAudioBlob);
-    const link = document.createElement('a');
-    link.href = audioURL;
-    link.download = `雅思测验口语录音_${studentName}.wav`;
-    link.click();
-}
-
+/**
+ * 动态组装本地 TXT 笔试答题大报告数据流并驱动执行浏览器强制下载
+ */
 function downloadDataFile() {
     let fileContent = `==================================================\n`;
-    fileContent += `       IELTS PLACEMENT TEST REPORT (INTERMEDIATE) \n`;
+    fileContent += `       IELTS PLACEMENT TEST REPORT (WRITTEN PARTS) \n`;
     fileContent += `==================================================\n`;
     fileContent += `学生姓名 (Student Name) : ${studentName}\n`;
-    fileContent += `提交时间 (Generated Time): ${new Date().toLocaleString()}\n`;
+    fileContent += `生成时间 (Generated Time): ${new Date().toLocaleString()}\n`;
     fileContent += `--------------------------------------------------\n\n`;
 
     fileContent += `[LISTENING SECTION ANSWERS]\n`;
@@ -384,39 +329,41 @@ function downloadDataFile() {
     const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `雅思测验定级报告_${studentName}.txt`;
+    link.download = `雅思测验笔试报告_${studentName}.txt`;
     link.click();
 }
 
 /**
  * =======================================================
- * 🛡️ 核心新增：全栈独立防作弊反侦察安全驱动引擎
+ * 🛡️ 全局高强度独立防作弊反侦察反插件安全拦截引擎
  * =======================================================
  */
 
-// 1. 全局拦截鼠标右键菜单
+// 1. 全局拦截阻止鼠标右键菜单事件弹出
 document.addEventListener('contextmenu', function (e) {
     e.preventDefault();
 });
 
-// 2. 全局拦截复制行为（防止题目被复制出去）
+// 2. 全局拦截阻止文本复制行为（全面锁死考卷题目防止外泄或搜题）
 document.addEventListener('copy', function (e) {
     e.preventDefault();
 });
 
-// 3. 全局拦截剪切行为
+// 3. 全局拦截阻止剪切行为
 document.addEventListener('cut', function (e) {
     e.preventDefault();
 });
 
-// 4. 精准打击：死锁作文文本框的粘贴行为
-const essayBox = document.getElementById('writing-essay');
-if (essayBox) {
-    essayBox.addEventListener('paste', function (e) {
-        e.preventDefault();
-        alert("⚠️ 考试警告：检测到不合规粘贴动作！作文部分必须纯手工敲击键盘作答，禁止抄袭外部文本！");
-    });
-}
+// 4. 精准打击：强制锁定并捕获作文输入区域的恶意外部文本粘贴动作
+window.addEventListener('DOMContentLoaded', () => {
+    const essayBox = document.getElementById('writing-essay');
+    if (essayBox) {
+        essayBox.addEventListener('paste', function (e) {
+            e.preventDefault(); // 强行斩断粘贴操作
+            alert("⚠️ 考试系统警告：检测到不合规粘贴动作！\n雅思写作部分必须纯手工敲击键盘作答，严禁从外部复制或使用AI工具抄袭文本！");
+        });
+    }
+});
 
 // 默认唤醒欢迎页
 showScreen('screen-welcome');
