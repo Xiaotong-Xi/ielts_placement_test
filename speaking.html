@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Placement Test - Speaking Section</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #ffffff;
+            --text-secondary: #b3b3b3;
+            --accent-color: #0076ff;
+            --accent-hover: #0056b3;
+            --error-color: #ff3b30;
+            --success-color: #4cd964;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            /* 🛡️ 防作弊：禁止口语界面文本被高亮选中 */
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .container {
+            width: 95%;
+            max-width: 700px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        .section-header {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #ffb300;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 15px;
+            width: 100%;
+        }
+
+        p.instruction-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            color: var(--text-secondary);
+        }
+
+        .input-group {
+            width: 100%;
+            max-width: 320px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 12px;
+            background-color: #2a2a2a;
+            border: 2px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 1rem;
+            box-sizing: border-box;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--accent-color);
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .btn-action {
+            background-color: var(--accent-color);
+            color: var(--text-color);
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(0, 118, 255, 0.3);
+        }
+
+        .btn-action:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-action:disabled {
+            background-color: #333 !important;
+            color: #777 !important;
+            cursor: not-allowed;
+            box-shadow: none !important;
+        }
+
+        .speaking-card {
+            background: #252525;
+            padding: 40px 30px;
+            border-radius: 10px;
+            border: 1px dashed #555;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 30px;
+        }
+
+        .speaking-track-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-bottom: 15px;
+        }
+
+        .status-indicator {
+            background-color: #1a1a1a;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            box-sizing: border-box;
+        }
+
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #888;
+            border-radius: 50%;
+        }
+
+        .pulse-dot.active-listening {
+            background-color: #ff9500;
+            animation: pulse 1.5s infinite;
+        }
+
+        .pulse-dot.active-recording {
+            background-color: var(--error-color);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0 { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.3); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        .end-title {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: var(--success-color);
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div id="audio-container"></div>
+
+    <div id="screen-auth" class="screen active">
+        <div class="section-header">IELTS SPEAKING TEST (口语模块)</div>
+        <p class="instruction-text">
+            为了确保您的录音文件名不乱码，<br>
+            请再次输入您的【姓名】，然后点击按钮开始测试。
+        </p>
+        <div class="input-group" style="margin: 0 auto 30px auto;">
+            <label for="student-name-input">请输入姓名 (Student Name):</label>
+            <input type="text" id="student-name-input" class="input-field" placeholder="例如: 张三" autocomplete="off">
+            <div id="name-error-msg" class="error-message">请输入姓名以绑定您的录音文件！</div>
+        </div>
+        <button class="btn-action" onclick="verifyAndProceed()">进入口语测试</button>
+    </div>
+
+    <div id="screen-engine" class="screen">
+        <div class="section-header">口语作答进行中</div>
+        <p class="instruction-text">
+            ⚠️ 注意：请允许使用【录音】功能。在测试过程中不要关闭或刷新网页！<br>
+            系统会依次为您播放问题。请在看到“🔴 开始录制”提示后作答，**回答完毕后点击下方按钮进入下一题**。
+        </p>
+        
+        <div class="speaking-card">
+            <div id="speaking-stage-title" class="speaking-track-title">正在初始化...</div>
+            <div class="status-indicator">
+                <div id="status-pulse-dot" class="pulse-dot"></div>
+                <span id="status-engine-text">等待录音设备就绪...</span>
+            </div>
+        </div>
+
+        <button id="btn-next-question" class="btn-action" style="display: none;" onclick="goToNextTrack()">
+            下一题 ➔
+        </button>
+    </div>
+
+    <div id="screen-finish" class="screen">
+        <div class="end-title">🎉 口语测试全部结束！</div>
+        <p class="instruction-text">
+            您的口语长音频录音已在本地生成完毕。<br>
+            系统已自动为您弹出【雅思口语录音_您的姓名.wav】文件的下载提示。<br>
+            如果由于浏览器拦截未能自动弹出下载，请点击下方绿色按钮手动下载。
+        </p>
+        <button id="btn-manual-dl" class="btn-action" style="background-color: var(--success-color);" onclick="forceDownloadAudio()">
+            手动下载口语 WAV 音频文件
+        </button>
+    </div>
+
+</div>
+
+<script>
+    let studentName = "";
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let finalAudioBlob = null;
+    let selectedSet = []; 
+    let globalTrackPointer = 1; // 记录当前进行到第几题
+
+    const questionSets = {
+        set1: [
+            "resources/oral_q1.wav",
+            "resources/oral_q2.wav",
+            "resources/oral_q3.wav",
+            "resources/oral_q4.wav"
+        ],
+        set2: [
+            "resources/oral2_q1.wav",
+            "resources/oral2_q2.wav",
+            "resources/oral2_q3.wav",
+            "resources/oral2_q4.wav",
+            "resources/oral2_q5.wav"
+        ]
+    };
+
+    // 1. 姓名验证与初始化
+    function verifyAndProceed() {
+        const inputEl = document.getElementById('student-name-input');
+        const errorEl = document.getElementById('name-error-msg');
+        studentName = inputEl.value.trim();
+
+        if (studentName === "") {
+            errorEl.style.display = 'block';
+            inputEl.focus();
+            return;
+        }
+        errorEl.style.display = 'none';
+
+        const setKeys = Object.keys(questionSets);
+        const randomKey = setKeys[Math.floor(Math.random() * setKeys.length)];
+        selectedSet = questionSets[randomKey];
+        
+        const audioContainer = document.getElementById('audio-container');
+        audioContainer.innerHTML = "";
+        selectedSet.forEach((src, index) => {
+            const audio = document.createElement('audio');
+            audio.id = `audio-speak-q${index + 1}`;
+            audio.src = src;
+            audio.style.display = 'none';
+            audioContainer.appendChild(audio);
+        });
+
+        document.getElementById('screen-auth').classList.remove('active');
+        document.getElementById('screen-engine').classList.add('active');
+        
+        initAndStartGlobalRecording();
+    }
+
+    // 2. 启动长录音驱动
+    function initAndStartGlobalRecording() {
+        document.getElementById('speaking-stage-title').innerText = "设备准备就绪";
+        document.getElementById('status-engine-text').innerText = "正在向浏览器申请麦克风硬件调用权限...";
+
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                audioChunks = [];
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = event => {
+                    if (event.data.size > 0) audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    finalAudioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    stream.getTracks().forEach(track => track.stop());
+                    renderTestFinished();
+                };
+
+                mediaRecorder.start(1000); 
+
+                // 开启第 1 题
+                globalTrackPointer = 1;
+                executeChainTrackRunner(globalTrackPointer);
+            })
+            .catch(err => {
+                alert("🚨 麦克风调用失败！请确保环境安全并允许了麦克风权限。\n报错详情: " + err);
+                document.getElementById('status-engine-text').innerText = "麦克风唤醒失败，请刷新重试。";
+            });
+    }
+
+    // 3. 核心播题逻辑（去除了时间限制倒计时）
+    function executeChainTrackRunner(currentQuestionNum) {
+        const stageTitle = document.getElementById('speaking-stage-title');
+        const engineText = document.getElementById('status-engine-text');
+        const pulseDot = document.getElementById('status-pulse-dot');
+        const nextBtn = document.getElementById('btn-next-question');
+        const totalQuestions = selectedSet.length;
+
+        // 隐藏“下一题”按钮，防止在播放题目音频时被误触
+        nextBtn.style.display = "none";
+
+        // 【终点判定】如果题跑完了，关闭录音机
+        if (currentQuestionNum > totalQuestions) {
+            stageTitle.innerText = "测试圆满完结";
+            engineText.innerText = "正在为您封装长录音文件，请稍候...";
+            pulseDot.className = "pulse-dot"; 
+            
+            if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                mediaRecorder.stop(); 
+            }
+            return;
+        }
+
+        stageTitle.innerText = `Speaking Section - Part ${currentQuestionNum} / ${totalQuestions}`;
+        engineText.innerText = "🎧 正在为您播放提问音频，请注意聆听题目...";
+        pulseDot.className = "pulse-dot active-listening"; 
+
+        const currentAudioElement = document.getElementById(`audio-speak-q${currentQuestionNum}`);
+        if (!currentAudioElement) {
+            goToNextTrack(); // 兜底
+            return;
+        }
+
+        currentAudioElement.currentTime = 0;
+        currentAudioElement.play().catch(e => console.log("播放受限: " + e));
+
+        // 🌟 核心修改：当题目音频播放完毕
+        currentAudioElement.onended = function() {
+            pulseDot.className = "pulse-dot active-recording"; // 换红灯，代表正在录音
+            engineText.innerText = `🔴 开始录制您的回答！请说话...（回答完毕后请点击下方按钮）`;
+            
+            // 根据是否是最后一题，动态调整按钮文字
+            if (currentQuestionNum === totalQuestions) {
+                nextBtn.innerText = "完成作答，提交交卷 ➔";
+            } else {
+                nextBtn.innerText = "我已回答完毕，进入下一题 ➔";
+            }
+            
+            // 显示让学生自主控制的按钮
+            nextBtn.style.display = "inline-block";
+        };
+    }
+
+    // 🌟 4. 手动点击按钮触发的“前往下一题”事件
+    function goToNextTrack() {
+        globalTrackPointer++;
+        executeChainTrackRunner(globalTrackPointer);
+    }
+
+    // 5. 切换到交卷下载页
+    function renderTestFinished() {
+        document.getElementById('screen-engine').classList.remove('active');
+        document.getElementById('screen-finish').classList.add('active');
+        forceDownloadAudio();
+    }
+
+    // 6. 下载句柄
+    function forceDownloadAudio() {
+        if (!finalAudioBlob) {
+            alert("未检测到录音数据实体。");
+            return;
+        }
+        const dlURL = URL.createObjectURL(finalAudioBlob);
+        const anchor = document.createElement('a');
+        anchor.href = dlURL;
+        anchor.download = `雅思口语录音_${studentName}.wav`;
+        anchor.click();
+    }
+
+    document.addEventListener('contextmenu', e => e.preventDefault()); 
+    document.addEventListener('copy', e => e.preventDefault());       
+    document.addEventListener('cut', e => e.preventDefault());        
+</script>
+</body>
+</html>
